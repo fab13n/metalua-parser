@@ -41,9 +41,9 @@ Trees are written below with some Metalua syntax sugar, which
 increases their readability. the backquote symbol introduces a `tag`,
 i.e. a string stored in the `"tag"` field of a table:
 
-* ``Foo{ 1, 2, 3 }` is a shortcut for `{tag="Foo", 1, 2, 3}`;
-* ``Foo` is a shortcut for `{tag="Foo"}`;
-* ``Foo 123` is a shortcut for ``Foo{ 123 }`, and therefore `{tag="Foo", 123 };
+* `` `Foo{ 1, 2, 3 }`` is a shortcut for `{tag="Foo", 1, 2, 3}`;
+* `` `Foo`` is a shortcut for `{tag="Foo"}`;
+* `` `Foo 123`` is a shortcut for `` `Foo{ 123 }``, and therefore `{tag="Foo", 123 }`;
   the expression after the tag must be a literal number or string.
 
 When using a Metalua interpreter or compiler, the backtick syntax is
@@ -80,7 +80,7 @@ the left-hand-side of an assignment statement `lhs`.
       `Nil  |  `Dots  |  `True  |  `False
     | `Number{ <number> }
     | `String{ <string> }
-    | `Function{ { ident* `Dots? } block }
+    | `Function{ { `Id{ <string> }* `Dots? } block }
     | `Table{ ( `Pair{ expr expr } | expr )* }
     | `Op{ opid expr expr? }
     | `Stat{ block, expr } -- No syntax
