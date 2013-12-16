@@ -168,7 +168,6 @@ The informations in lineinfo positions, i.e. in each `"first"` and
 * `"offset"` the 1-based offset relative to the beginning of the string/file;
 * `"line"` the 1-based line number;
 * `"column"` the 1-based offset within the line;
-* `"comments"` the description of any comment(s) in this inter-token space;
 * `"facing"` the position at the opposite end of the inter-token space.
 * `"comments"` the comments in the associated inter-token space (optional).
 * `"id"` an arbitrary number, which uniquely identifies an inter-token
