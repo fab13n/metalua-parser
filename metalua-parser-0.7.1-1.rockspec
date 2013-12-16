@@ -1,8 +1,9 @@
 --*-lua-*--
 package = "metalua-parser"
-version = "0.7-1"
+version = "0.7.1-1"
 source = {
-   url = "https://github.com/fab13n/metalua-parser/blob/master/metalua-parser-0.7.tgz?raw=true"
+   url = "git://github.com/fab13n/metalua-parser",
+   tag = "v0.7.1",
 }
 description = {
    summary = "Metalua's parser: converting Lua source strings and files into AST",
@@ -12,7 +13,7 @@ description = {
            and manipulate Lua programs.
    ]],
    homepage = "http://git.eclipse.org/c/koneki/org.eclipse.koneki.metalua.git",
-   license = "EPL"
+   license = "EPL + MIT"
 }
 dependencies = {
    "lua ~> 5.1",
