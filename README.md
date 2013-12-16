@@ -33,6 +33,10 @@ functions are `:src_to_ast(source_string)` and
     mlc = require 'metalua.compiler'.new()
     ast = mlc :src_to_ast[[ return 123 ]]
 
+A compiler instance can be reused as much as you want; it's only
+interesting to work with more than one compiler instance when you
+start extending their grammars.
+
 ## Abstract Syntax Trees definition
 
 ### Notation

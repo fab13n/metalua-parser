@@ -25,14 +25,14 @@
 --
 -- Supported formats are:
 --
--- * luafile:    the name of a file containing sources.
--- * luastring:  these sources as a single string.
+-- * srcfile:    the name of a file containing sources.
+-- * src:        these sources as a single string.
 -- * lexstream:  a stream of lexemes.
 -- * ast:        an abstract syntax tree.
 -- * proto:      a (Yueliang) struture containing a high level
 --               representation of bytecode. Largely based on the
 --               Proto structure in Lua's VM
--- * luacstring: a string dump of the function, as taken by
+-- * bytecode:   a string dump of the function, as taken by
 --               loadstring() and produced by string.dump().
 -- * function:   an executable lua function in RAM.
 --
