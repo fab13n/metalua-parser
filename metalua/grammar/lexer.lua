@@ -519,7 +519,7 @@ end
 -- Returns an object which saves the stream's current state.
 ----------------------------------------------------------------------
 -- FIXME there are more fields than that to save
-function lexer :save () return { self.i; {unpack(x) } } end
+function lexer :save () return { self.i; {unpack(self.peeked) } } end
 
 ----------------------------------------------------------------------
 -- Restore the stream's state, as saved by method [save].

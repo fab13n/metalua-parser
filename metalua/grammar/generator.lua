@@ -295,14 +295,12 @@ function M.multisequence (p)
             error ("In a multisequence parser, all but one sequences "..
                    "must start with a keyword")
          else self.default = s end -- first default
-      elseif self.sequences[keyword] then -- duplicate keyword
-         print (string.format(
-	    " *** Warning: keyword %q overloaded in multisequence ***",
-            keyword))
+     else
+         if self.sequences[keyword] then -- duplicate keyword
+             -- TODO: warn that initial keyword `keyword` is overloaded in multiseq
+         end
          self.sequences[keyword] = s
-      else -- newly caught keyword
-         self.sequences[keyword] = s
-      end
+     end
    end -- </multisequence.add>
 
    -------------------------------------------------------------------
@@ -315,11 +313,10 @@ function M.multisequence (p)
    -------------------------------------------------------------------
    function p :del (kw)
       if not self.sequences[kw] then
-         eprintf("*** Warning: trying to delete sequence starting "..
-                 "with %q from a multisequence having no such "..
-                 "entry ***", kw) end
+          -- TODO: warn that we try to delete a non-existent entry
+      end
       local removed = self.sequences[kw]
-      self.sequences[kw] = nil 
+      self.sequences[kw] = nil
       return removed
    end
 
@@ -709,8 +706,7 @@ function M.onkeyword (p)
       if type(x)=="string" then table.insert (p.keywords, x)
       else assert (not p.primary and M.is_parser (x)); p.primary = x end
    end
-   if not next (p.keywords) then
-      eprintf("Warning, no keyword to trigger gg.onkeyword") end
+   assert (next (p.keywords), "Missing trigger keyword in gg.onkeyword")
    assert (p.primary, 'no primary parser in gg.onkeyword')
    return p
 end --</onkeyword>
