@@ -88,15 +88,26 @@ function CONV :lexstream_to_ast(lx, name)
 	return r, name
 end
 
+local bytecode_compiler = nil -- cache to avoid repeated `pcall(require(...))`
+local function get_bytecode_compiler()
+    if bytecode_compiler then return bytecode_compiler else
+        local status, result = pcall(require, 'metalua.compiler.bytecode.compile')
+        if status then
+            bytecode_compiler = result
+            return result
+        elseif string.match(result, "not found") then
+            error "Compilation only available with full Metalua"
+        else error (result) end
+    end
+end
+
 function CONV :ast_to_proto(ast, name)
 	checks('metalua.compiler', 'table', '?string')
-	local f = require 'metalua.compiler.bytecode.compile'.ast_to_proto
-	return f(ast, name), name
+    return get_bytecode_compiler().ast_to_proto(ast, name), name
 end
 
 function CONV :proto_to_bytecode(proto, name)
-	local bc = require 'metalua.compiler.bytecode'
-	return bc.proto_to_bytecode(proto), name
+    return get_bytecode_compiler().proto_to_bytecode(proto), name
 end
 
 function CONV :bytecode_to_function(bc, name)
