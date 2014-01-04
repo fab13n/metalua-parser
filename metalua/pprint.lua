@@ -28,21 +28,21 @@
 local M = { }
 
 M.DEFAULT_CFG = {
-    print_hash     = true; -- Print the non-array part of tables?
-    metalua_tag    = true; -- Use Metalua's backtick syntax sugar?
-    fix_indent     = nil;  -- If a number, number of indentation spaces;
-                           -- If false, indent to the previous brace.
-    line_max       = nil;  -- If a number, tries to avoid making lines with
-                           -- more than this number of chars.
-    initial_indent = 0;    -- If a number, starts at this level of indentation
-    keywords       = { };  -- Set of keywords which must not use Lua's field
-                           -- shortcuts {["foo"]=...} -> {foo=...}
+    hide_hash      = false; -- Print the non-array part of tables?
+    metalua_tag    = true;  -- Use Metalua's backtick syntax sugar?
+    fix_indent     = nil;   -- If a number, number of indentation spaces;
+                            -- If false, indent to the previous brace.
+    line_max       = nil;   -- If a number, tries to avoid making lines with
+                            -- more than this number of chars.
+    initial_indent = 0;     -- If a number, starts at this level of indentation
+    keywords       = { };   -- Set of keywords which must not use Lua's field
+                            -- shortcuts {["foo"]=...} -> {foo=...}
 }
 
-local function valid_id(p, x)
+local function valid_id(cfg, x)
     if type(x) ~= "string" then return false end
     if not x:match "^[a-zA-Z_][a-zA-Z0-9_]*$" then return false end
-    if p.keywords and p.keywords[x] then return false end
+    if cfg.keywords and cfg.keywords[x] then return false end
     return true
 end
 
@@ -87,13 +87,13 @@ function xlen_type.table (adt, cfg, nested)
     if nested [adt] then return #tostring(adt) end
     nested [adt] = true
 
-    local has_tag  = cfg.metalua_tag and valid_id(p, adt.tag)
+    local has_tag  = cfg.metalua_tag and valid_id(cfg, adt.tag)
     local alen     = #adt
     local has_arr  = alen>0
     local has_hash = false
     local x = 0
 
-    if cfg.print_hash then
+    if not cfg.hide_hash then
         -- first pass: count hash-part
         for k, v in pairs(adt) do
             if k=="tag" and has_tag then
@@ -102,7 +102,7 @@ function xlen_type.table (adt, cfg, nested)
                 -- array-part pair -> do nothing!
             else
                 has_hash = true
-                if valid_id(p, k) then x=x+#k
+                if valid_id(cfg, k) then x=x+#k
                 else x = x + xlen (k, cfg, nested) + 2 end -- count surrounding brackets
                 x = x + xlen (v, cfg, nested) + 5          -- count " = " and ", "
             end
@@ -169,14 +169,14 @@ function acc_type.table(p, adt)
     if p.nested[adt] then p:acc(tostring(adt)); return end
     p.nested[adt]  = true
 
-    local has_tag  = p.cfg.metalua_tag and valid_id(p, adt.tag)
+    local has_tag  = p.cfg.metalua_tag and valid_id(p.cfg, adt.tag)
     local alen     = #adt
     local has_arr  = alen>0
     local has_hash = false
 
-    if has_tag then p:acc("`"); p:acc(adt.tag) end
+    local previous_indent = p.indent
 
-    local previous_indent = p.cfg.indent
+    if has_tag then p:acc("`"); p:acc(adt.tag) end
 
     local function indent(p)
         if not p.cfg.fix_indent then p.indent = p.current_offset
@@ -184,7 +184,7 @@ function acc_type.table(p, adt)
     end
 
     -- First pass: handle hash-part
-    if p.cfg.print_hash then
+    if not p.cfg.hide_hash then
         for k, v in pairs(adt) do
 
             if has_tag and k=='tag' then  -- pass the 'tag' field
@@ -196,13 +196,10 @@ function acc_type.table(p, adt)
                 end
 
                 -- Determine whether a newline is required
-                local is_id, expected_len=valid_id(p, k)
+                local is_id, expected_len=valid_id(p.cfg, k)
                 if is_id then expected_len=#k+xlen(v, p.cfg, p.nested)+#" = , "
                 else expected_len = xlen(k, p.cfg, p.nested)+xlen(v, p.cfg, p.nested)+#"[] = , " end
                 consider_newline(p, expected_len)
-
-                -- Increase indentation
-                if p.cfg.fix_indent then p.indent = p.indent + p.cfg.fix_indent end
 
                 -- Print the key
                 if is_id then p:acc(k); p:acc " = " else
@@ -246,7 +243,7 @@ function acc_type.table(p, adt)
         if not no_brace then p:acc " }" end
     end
     p.nested[adt] = false -- No more nested calls
-    p.cfg.indent = previous_indent
+    p.indent = previous_indent
 end
 
 
@@ -264,11 +261,6 @@ end
 -- so that print() doesn't need to bufferize the whole string
 -- before starting to print.
 function M.tostring(t, cfg)
-    -- cfg.print_hash
-    -- cfg.metalua_tag
-    -- cfg.fix_indent
-    -- cfg.line_max
-    -- cfg.initial_indent
 
     cfg = cfg or M.DEFAULT_CFG or { }
 
