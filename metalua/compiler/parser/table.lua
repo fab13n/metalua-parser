@@ -20,9 +20,9 @@
 --------------------------------------------------------------------------------
 --
 -- Exported API:
--- * [M.bracket_field()]
--- * [M.field()]
--- * [M.content()]
+-- * [M.table_bracket_field()]
+-- * [M.table_field()]
+-- * [M.table_content()]
 -- * [M.table()]
 --
 -- KNOWN BUG: doesn't handle final ";" or "," before final "}"
@@ -42,14 +42,14 @@ local function _expr (lx) return mlp.expr(lx) end
 --------------------------------------------------------------------------------
 -- [[key] = value] table field definition
 --------------------------------------------------------------------------------
-M.bracket_field = gg.sequence{ "[", _expr, "]", "=", _expr, builder = "Pair" }
+M.table_bracket_field = gg.sequence{ "[", _expr, "]", "=", _expr, builder = "Pair" }
 
 --------------------------------------------------------------------------------
 -- [id = value] or [value] table field definition;
 -- [[key]=val] are delegated to [bracket_field()]
 --------------------------------------------------------------------------------
-function M.field (lx)
-   if lx :is_keyword (lx :peek(), "[") then return M.bracket_field (lx) end
+function M.table_field (lx)
+   if lx :is_keyword (lx :peek(), "[") then return M.table_bracket_field (lx) end
    local e = _expr (lx)
    if lx :is_keyword (lx :peek(), "=") then
       lx :next(); -- skip the "="
@@ -59,7 +59,7 @@ function M.field (lx)
          gg.parse_error(lx, 'Identifier expected, got %s.', etag)
       end
       local key = mlp.id2string(e)
-      local val = _expr(lx)
+      local val = mlp.expr(lx)
       local r = { tag="Pair", key, val }
       r.lineinfo = { first = key.lineinfo.first, last = val.lineinfo.last }
       return r
@@ -69,8 +69,8 @@ end
 --------------------------------------------------------------------------------
 -- table constructor, without enclosing braces; returns a full table object
 --------------------------------------------------------------------------------
-M.content  = gg.list {
-   primary     =  function(...) return M.field(...) end,
+M.table_content  = gg.list {
+   primary     =  function(...) return M.table_field(...) end,
    separators  = { ",", ";" },
    terminators = "}",
    builder     = "Table" }
@@ -78,6 +78,6 @@ M.content  = gg.list {
 --------------------------------------------------------------------------------
 -- complete table constructor including [{...}]
 --------------------------------------------------------------------------------
-M.table = gg.sequence{ "{", function(...) return M.content(...) end, "}", builder = unpack }
+M.table = gg.sequence{ "{", function(...) return M.table_content(...) end, "}", builder = unpack }
 
 return M

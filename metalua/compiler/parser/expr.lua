@@ -63,7 +63,7 @@ M.func_args_content = gg.list{
 -- Used to parse methods
 M.method_args = gg.multisequence{
    name = "function argument(s)",
-   { "{",  mlp_table.content, "}" },
+   { "{",  mlp_table.table_content, "}" },
    { "(",  M.func_args_content, ")", builder = unpack },
    { "+{", mlp_meta.quote_content, "}" },
    function(lx) local r = mlp.opt_string(lx); return r and {r} or { } end }
@@ -195,7 +195,7 @@ M.expr = gg.expr { name = "expression",
          return {tag="Index", tab, mlp_misc.id2string(field[1])} end },
       { "(", M.func_args_content, ")", builder = function(f, args)
          return {tag="Call", f, unpack(args[1])} end },
-      { "{", mlp_table.content, "}", builder = function (f, arg)
+      { "{", mlp_table.table_content, "}", builder = function (f, arg)
          return {tag="Call", f, arg[1]} end},
       { ":", id, M.method_args, builder = function (obj, post)
          local m_name, args = unpack(post)

@@ -91,7 +91,7 @@ end
 local bytecode_compiler = nil -- cache to avoid repeated `pcall(require(...))`
 local function get_bytecode_compiler()
     if bytecode_compiler then return bytecode_compiler else
-        local status, result = pcall(require, 'metalua.compiler.bytecode.compile')
+        local status, result = pcall(require, 'metalua.compiler.bytecode')
         if status then
             bytecode_compiler = result
             return result
