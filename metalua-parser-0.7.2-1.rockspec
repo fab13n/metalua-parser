@@ -1,9 +1,9 @@
 --*-lua-*--
 package = "metalua-parser"
-version = "0.7.1-1"
+version = "0.7.2-1"
 source = {
    url = "git://github.com/fab13n/metalua-parser",
-   tag = "v0.7.1",
+   tag = "v0.7.2",
 }
 description = {
    summary = "Metalua's parser: converting Lua source strings and files into AST",
@@ -35,6 +35,7 @@ build = {
         ["metalua.compiler.parser.meta"] = "metalua/compiler/parser/meta.lua",
         ["metalua.compiler.parser.expr"] = "metalua/compiler/parser/expr.lua",
         ["metalua.compiler"] = "metalua/compiler.lua",
+        ["metalua.pprint"] = "metalua/pprint.lua",
     }
 }
 
