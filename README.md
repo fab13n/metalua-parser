@@ -10,6 +10,15 @@ this format to represent ASTs.
 It has been designed for Lua 5.1. It hasn't been tested against
 Lua 5.2, but should be easily ported.
 
+## Repository
+
+`metalua-parser` is temporarily hosted at github, while cutting
+Metalua into finer-grained Luarock modules is in progress. However,
+Metalua's official repository is at Eclipse, as part of the
+[koneki](http://www.eclipse.org/koneki/) project; Luarocks will
+eventually migrate there once stabilized.  A miror on github will be
+maintained for easier code sharing, though.
+
 ## Usage
 
 Module `metalua.compiler` has a `new()` function, which returns a
@@ -73,11 +82,11 @@ the left-hand-side of an assignment statement `lhs`.
     | `Fornum{ ident expr expr expr? block }    -- for ident = e, e[, e] do b end
     | `Forin{ {ident+} {expr+} block }          -- for i1, i2... in e1, e2... do b end
     | `Local{ {ident+} {expr+}? }               -- local i1, i2... = e1, e2...
-    | `Localrec{ ident expr }                   -- no syntax, except in 'local function'
-    | `Goto{ <string> }                         -- no syntax in Lua 5.1
-    | `Label{ <string> }                        -- no syntax in Lua 5.1
-    | `Return{ <expr*> }                        -- allowed anywhere, unlike in plain Lua
-    | `Break                                    -- allowed anywhere, unlike in plain Lua
+    | `Localrec{ ident expr }                   -- only used for 'local function'
+    | `Goto{ <string> }                         -- goto str
+    | `Label{ <string> }                        -- ::str::
+    | `Return{ <expr*> }                        -- return e1, e2...
+    | `Break                                    -- break
     | apply
 
     expr:
@@ -87,8 +96,8 @@ the left-hand-side of an assignment statement `lhs`.
     | `Function{ { `Id{ <string> }* `Dots? } block }
     | `Table{ ( `Pair{ expr expr } | expr )* }
     | `Op{ opid expr expr? }
-    | `Stat{ block, expr } -- No syntax
-    | `Paren{ expr } -- significant to cut multiple values returns
+    | `Stat{ block, expr } -- Only when Metalua extensions are loaded
+    | `Paren{ expr }       -- significant to cut multiple values returns
     | apply
     | lhs
 
