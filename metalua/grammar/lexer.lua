@@ -46,8 +46,8 @@ M.metatables=MT
 ----------------------------------------------------------------------
 -- Create a new metatable, for a new class of objects.
 ----------------------------------------------------------------------
-local function new_metatable(name) 
-    local mt = { __type = 'lexer.'..name }; 
+local function new_metatable(name)
+    local mt = { __type = 'lexer.'..name };
     mt.__index = mt
     MT[name] = mt
 end
@@ -68,7 +68,7 @@ function M.new_position(line, column, offset, source)
 end
 
 function MT.position :__tostring()
-    return string.format("<%s%s|L%d|C%d|K%d>", 
+    return string.format("<%s%s|L%d|C%d|K%d>",
         self.comments and "C|" or "",
         self.source, self.line, self.column, self.offset)
 end
@@ -87,7 +87,7 @@ function M.new_position_factory(src, src_name)
     for offset in src :gmatch '\n()' do table.insert(lines, offset) end
     local max = #src+1
     table.insert(lines, max+1) -- +1 includes Eof
-    return setmetatable({ src_name=src_name, line2offset=lines, max=max }, 
+    return setmetatable({ src_name=src_name, line2offset=lines, max=max },
         MT.position_factory)
 end
 
@@ -137,7 +137,7 @@ function MT.lineinfo :__tostring()
     local line   = fli.line;   if line~=lli.line     then line  =line  ..'-'..lli.line   end
     local column = fli.column; if column~=lli.column then column=column..'-'..lli.column end
     local offset = fli.offset; if offset~=lli.offset then offset=offset..'-'..lli.offset end
-    return string.format("<%s%s|L%s|C%s|K%s%s>", 
+    return string.format("<%s%s|L%s|C%s|K%s%s>",
                          fli.comments and "C|" or "",
                          fli.source, line, column, offset,
                          lli.comments and "|C" or "")
@@ -150,12 +150,12 @@ end
 new_metatable 'token'
 
 function M.new_token(tag, content, lineinfo)
-    --printf("TOKEN `%s{ %q, lineinfo = %s} boundaries %d, %d", 
-    --       tag, content, tostring(lineinfo), lineinfo.first.id, lineinfo.last.id) 
+    --printf("TOKEN `%s{ %q, lineinfo = %s} boundaries %d, %d",
+    --       tag, content, tostring(lineinfo), lineinfo.first.id, lineinfo.last.id)
     return setmetatable({tag=tag, lineinfo=lineinfo, content}, MT.token)
 end
 
-function MT.token :__tostring()    
+function MT.token :__tostring()
     --return string.format("`%s{ %q, %s }", self.tag, self[1], tostring(self.lineinfo))
     return string.format("`%s %q", self.tag, self[1])
 end
@@ -231,9 +231,9 @@ local function unescape_string (s)
       local k, j, i = digits :reverse() :byte(1, 3)
       local z = string.byte "0"
       local code = (k or z) + 10*(j or z) + 100*(i or z) - 111*z
-      if code > 255 then 
+      if code > 255 then
          error ("Illegal escape sequence '\\"..digits..
-                "' in string: ASCII codes must be in [0..255]") 
+                "' in string: ASCII codes must be in [0..255]")
       end
       local c = string.char (code)
       if c == '\\' then c = '\\\\' end -- parsed by unesc_letter (test: "\092b" --> "\\b")
@@ -251,7 +251,7 @@ local function unescape_string (s)
      if c == '\\' then c = '\\\\' end -- parsed by unesc_letter (test: "\x5cb" --> "\\b")
      return backslashes..c
    end
-   
+
    -- Handle Lua 5.2 \z sequences
    local function unesc_z(backslashes, more)
      if #backslashes%2==0 then
@@ -261,10 +261,10 @@ local function unescape_string (s)
      end
    end
 
-   -- Take a letter [x], and returns the character represented by the 
+   -- Take a letter [x], and returns the character represented by the
    -- sequence ['\\'..x], e.g. [unesc_letter "n" == "\n"].
    local function unesc_letter(x)
-      local t = { 
+      local t = {
          a = "\a", b = "\b", f = "\f",
          n = "\n", r = "\r", t = "\t", v = "\v",
          ["\\"] = "\\", ["'"] = "'", ['"'] = '"', ["\n"] = "\n" }
@@ -280,13 +280,13 @@ end
 
 lexer.extractors = {
    "extract_long_comment", "extract_short_comment",
-   "extract_short_string", "extract_word", "extract_number", 
+   "extract_short_string", "extract_word", "extract_number",
    "extract_long_string", "extract_symbol" }
 
 
 
 ----------------------------------------------------------------------
--- Really extract next token from the raw string 
+-- Really extract next token from the raw string
 -- (and update the index).
 -- loc: offset of the position just after spaces and comments
 -- previous_i: offset in src before extraction began
@@ -320,7 +320,7 @@ function lexer :extract ()
          return tok
        end
        local i_first = self.i -- loc = position after whitespaces
-       
+
        -- try every extractor until a token is found
        for _, extractor in ipairs(self.extractors) do
            local tag, content, xtra = self [extractor] (self)
@@ -449,12 +449,12 @@ end
 function lexer :extract_symbol()
    local k = self.src:sub (self.i,self.i)
    local symk = self.sym [k]  -- symbols starting with `k`
-   if not symk then 
+   if not symk then
       self.i = self.i + 1
       return 'Keyword', k
    end
    for _, sym in pairs (symk) do
-      if sym == self.src:sub (self.i, self.i + #sym - 1) then 
+      if sym == self.src:sub (self.i, self.i + #sym - 1) then
          self.i = self.i + #sym
          return 'Keyword', sym
       end
@@ -472,7 +472,7 @@ function lexer :add (w, ...)
       for _, x in ipairs (w) do self :add (x) end
    else
       if w:match (self.patterns.word .. "$") then self.alpha [w] = true
-      elseif w:match "^%p%p+$" then 
+      elseif w:match "^%p%p+$" then
          local k = w:sub(1,1)
          local list = self.sym [k]
          if not list then list = { }; self.sym [k] = list end
@@ -507,7 +507,7 @@ function lexer :next (n)
    self :peek (n)
    local a
    for i=1,n do
-      a = table.remove (self.peeked, 1) 
+      a = table.remove (self.peeked, 1)
       -- TODO: is this used anywhere? I think not.  a.lineinfo.last may be nil.
       --self.lastline = a.lineinfo.last.line
    end
@@ -533,7 +533,7 @@ function lexer :restore (s) self.i=s[1]; self.peeked=s[2] end
 ----------------------------------------------------------------------
 function lexer :sync()
    local p1 = self.peeked[1]
-   if p1 then 
+   if p1 then
       local li_first = p1.lineinfo.first
       if li_first.comments then li_first=li_first.comments.lineinfo.first end
       self.i = li_first.offset
@@ -584,7 +584,7 @@ function lexer :newstream (src_or_stream, name)
    elseif type(src_or_stream)=='string' then -- it's a source string
       local src = src_or_stream
       local pos1 = M.new_position(1, 1, 1, name)
-      local stream = { 
+      local stream = {
          src_name      = name;   -- Name of the file
          src           = src;    -- The source, as a single string
          peeked        = { };    -- Already peeked, but not discarded yet, tokens
@@ -634,7 +634,7 @@ function lexer :check (...)
    local words = {...}
    local a = self :next()
    local function err ()
-      error ("Got " .. tostring (a) .. 
+      error ("Got " .. tostring (a) ..
              ", expected one of these keywords : '" ..
              table.concat (words,"', '") .. "'") end
    if not a or a.tag ~= "Keyword" then err () end

@@ -152,7 +152,7 @@ end
 
 local MT = { __index=CONV, __type='metalua.compiler' }
 
-function M.new() 
+function M.new()
 	local parser = require 'metalua.compiler.parser' .new()
 	local self = { parser = parser }
 	setmetatable(self, MT)

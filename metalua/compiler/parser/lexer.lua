@@ -29,9 +29,8 @@
 ----------------------------------------------------------------------
 
 local generic_lexer = require 'metalua.grammar.lexer'
-local M = { }
 
-M.lexer = generic_lexer.lexer :clone()
+local lexer = generic_lexer.lexer :clone()
 
 local keywords = {
     "and", "break", "do", "else", "elseif",
@@ -42,8 +41,8 @@ local keywords = {
     "return", "then", "true", "until", "while",
     "...", "..", "==", ">=", "<=", "~=",
     "::", -- Lua5,2
-    "+{", "-{" }
- 
-for _, w in ipairs(keywords) do M.lexer :add (w) end
+    "+{", "-{" } -- Metalua
 
-return M
+for _, w in ipairs(keywords) do lexer :add (w) end
+
+return lexer
