@@ -132,7 +132,7 @@ return function(M)
             return { } -- handle empty files
         else
             M.skip_initial_sharp_comment (lx)
-            local chunk = mlp.block (lx)
+            local chunk = M.block (lx)
             if lx:peek().tag ~= "Eof" then
                 gg.parse_error(lx, "End-of-file expected")
             end

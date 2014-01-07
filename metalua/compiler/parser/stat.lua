@@ -36,6 +36,8 @@
 local lexer    = require 'metalua.grammar.lexer'
 local gg       = require 'metalua.grammar.generator'
 
+local annot = require 'metalua.compiler.parser.annot.generator'
+
 --------------------------------------------------------------------------------
 -- List of all keywords that indicate the end of a statement block. Users are
 -- likely to extend this list when designing extensions.
@@ -120,13 +122,13 @@ return function(M)
         local acc = list[1]
         local first = acc.lineinfo.first
         for i = 2, #list do
-            local index = mlp.id2string(list[i])
+            local index = M.id2string(list[i])
             local li = lexer.new_lineinfo(first, index.lineinfo.last)
             acc = { tag="Index", acc, index, lineinfo=li }
         end
         return acc
     end
-    local func_name = gg.list{ mlp_misc.id, separators = ".", builder = fn_builder }
+    local func_name = gg.list{ _M.id, separators = ".", builder = fn_builder }
 
     ----------------------------------------------------------------------------
     -- Function def parser helper: ( : id )?
@@ -178,7 +180,7 @@ return function(M)
 
     local annot_expr = gg.sequence {
         _M.expr,
-        gg.onkeyword{ "#", _annot.tf },
+        gg.onkeyword{ "#", gg.future(M, 'annot').tf },
         builder = function(x)
             local e, a = unpack(x)
             if a then return { tag='Annot', e, a }
@@ -186,7 +188,7 @@ return function(M)
         end }
 
     local annot_expr_list = gg.list {
-        primary = _annot.opt(_M.expr, 'tf'), separators = ',' }
+        primary = annot.opt(M, _M.expr, 'tf'), separators = ',' }
 
     ------------------------------------------------------------------------
     -- assignments and calls: statements that don't start with a keyword
@@ -237,7 +239,7 @@ return function(M)
         -- local <id_list> ( = <expr_list> )?
         default = gg.sequence{
             gg.list{
-                primary = _annot.opt(mlp_misc.id, 'tf'),
+                primary = annot.opt(M, _M.id, 'tf'),
                 separators = ',' },
             gg.onkeyword{ "=", _M.expr_list },
             builder = function(x)
@@ -251,18 +253,18 @@ return function(M)
     ------------------------------------------------------------------------
     M.stat = gg.multisequence {
         name = "statement",
-        { "do", M.block, "end", builder =
+        { "do", _M.block, "end", builder =
           function (x) return { tag="Do", unpack (x[1]) } end },
-        { "for", M.for_header, "do", M.block, "end", builder =
+        { "for", _M.for_header, "do", _M.block, "end", builder =
           function (x) x[1][#x[1]+1] = x[2]; return x[1] end },
         { "function", func_name, method_name, _M.func_val, builder=funcdef_builder },
-        { "while", _M.expr, "do", M.block, "end", builder = "While" },
-        { "repeat", M.block, "until", _M.expr, builder = "Repeat" },
-        { "local", M.local_stat_parser, builder = unpack },
+        { "while", _M.expr, "do", _M.block, "end", builder = "While" },
+        { "repeat", _M.block, "until", _M.expr, builder = "Repeat" },
+        { "local", _M.local_stat_parser, builder = unpack },
         { "return", return_expr_list_parser, builder =
           function(x) x[1].tag='Return'; return x[1] end },
         { "break", builder = function() return { tag="Break" } end },
-        { "-{", mlp_meta.splice_content, "}", builder = unpack },
+        { "-{", gg.future(M, 'meta').splice_content, "}", builder = unpack },
         { "if", gg.nonempty(elseifs_parser), gg.onkeyword{ "else", M.block }, "end",
           builder = if_builder },
         default = assign_or_call_stat_parser }
@@ -272,4 +274,6 @@ return function(M)
     }
 
     function M.assignments:add(k, v) self[k] = v end
-return M
+
+    return M
+end

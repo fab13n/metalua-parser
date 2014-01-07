@@ -30,22 +30,17 @@
 --------------------------------------------------------------------------------
 
 local gg  = require 'metalua.grammar.generator'
-local mlp = require 'metalua.compiler.parser.common'
 
 return function(M)
 
-    --------------------------------------------------------------------------------
-    -- eta expansion to break circular dependencies:
-    --------------------------------------------------------------------------------
-    local function _expr (lx) return mlp.expr(lx) end
-
     M.table = { }
     local _table = gg.future(M.table)
+    local _expr  = gg.future(M).expr
 
     --------------------------------------------------------------------------------
     -- `[key] = value` table field definition
     --------------------------------------------------------------------------------
-    M.table.bracket_pair = gg.sequence{ "[", _M.expr, "]", "=", _M.expr, builder = "Pair" }
+    M.table.bracket_pair = gg.sequence{ "[", _expr, "]", "=", _expr, builder = "Pair" }
 
     --------------------------------------------------------------------------------
     -- table element parser: list value, `id = value` pair or `[value] = value` pair.
@@ -75,7 +70,8 @@ return function(M)
     --------------------------------------------------------------------------------
     -- complete table constructor including [{...}]
     --------------------------------------------------------------------------------
-    M.table.table = gg.sequence{ "{", _table.content, builder = unpack }
+    -- TODO beware, stat and expr use only table.content, this can't be patched.
+    M.table.table = gg.sequence{ "{", _table.content, "}", builder = unpack }
 
     return M
 end

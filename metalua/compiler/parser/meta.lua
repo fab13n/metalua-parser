@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Copyright (c) 2006-2013 Fabien Fleutot and others.
+-- Copyright (c) 2006-2014 Fabien Fleutot and others.
 --
 -- All rights reserved.
 --
@@ -17,19 +17,8 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---
--- Summary: Meta-operations: AST quasi-quoting and splicing
---
--------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---
--- Exported API:
--- * [mlp.splice_content()]
--- * [mlp.quote_content()]
---
---------------------------------------------------------------------------------
+-- Compile-time metaprogramming features: splicing ASTs generated during compilation,
+-- AST quasi-quoting helpers.
 
 local gg       = require 'metalua.grammar.generator'
 
@@ -44,6 +33,7 @@ return function(M)
     -- an AST).
     --------------------------------------------------------------------------------
 
+    -- TODO: that's not part of the parser
     function M.meta.eval (ast)
         -- TODO: should there be one mlc per splice, or per parser instance?
         local mlc = require 'metalua.compiler'.new()
@@ -59,7 +49,7 @@ return function(M)
     -- e.g. change `Foo{ 123 } into
     -- `Table{ `Pair{ `String "tag", `String "foo" }, `Number 123 }
     ----------------------------------------------------------------------------
-    function M.meta.lift (t)
+    local function lift (t)
         --print("QUOTING:", table.tostring(t, 60,'nohash'))
         local cases = { }
         function cases.table (t)
@@ -70,10 +60,10 @@ return function(M)
                 local sp = t[1]
                 return sp
             elseif t.tag then
-                table.insert (mt, { tag="Pair", M.quote "tag", M.quote(t.tag) })
+                table.insert (mt, { tag="Pair", lift "tag", lift(t.tag) })
             end
             for _, v in ipairs (t) do
-                table.insert (mt, M.meta.lift(v))
+                table.insert (mt, lift(v))
             end
             return mt
         end
@@ -83,6 +73,7 @@ return function(M)
         local f = cases [type(t)]
         if f then return f(t) else error ("Cannot quote an AST containing "..tostring(t)) end
     end
+    M.meta.lift = lift
 
     --------------------------------------------------------------------------------
     -- when this variable is false, code inside [-{...}] is compiled and

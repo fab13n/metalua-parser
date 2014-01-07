@@ -18,11 +18,10 @@
 --------------------------------------------------------------------------------
 
 local gg    = require 'metalua.grammar.generator'
-local lexer = require 'metalua.compiler.parser.lexer'
 
 return function(M)
     local _M = gg.future(M)
-    lexer.lexer :add '->'
+    M.lexer :add '->'
     local A = { }
     local _A = gg.future(A)
     M.annot = A
@@ -108,30 +107,6 @@ return function(M)
         XXX??,
         builder = 'Annot' }
 --]]
-
-    function M.annot.opt(primary, a_type)
-        checks('table|function', 'string')
-        return gg.sequence{
-            primary,
-            gg.onkeyword{ "#", assert(M[a_type]) },
-            builder = function(x)
-                local t, annot = unpack(x)
-                return annot and { tag='Annot', t, annot } or t
-            end }
-    end
-
-    -- split a list of "foo" and "`Annot{foo, annot}" into a list of "foo"
-    -- and a list of "annot".
-    -- No annot list is returned if none of the elements were annotated.
-    function M.annot.split(lst)
-        local x, a, some = { }, { }, false
-        for i, p in ipairs(lst) do
-            if p.tag=='Annot' then
-                some, x[i], a[i] = true, unpack(p)
-            else x[i] = p end
-        end
-        if some then return x, a else return lst end
-    end
 
     return M.annot
 end

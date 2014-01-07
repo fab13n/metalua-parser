@@ -27,11 +27,12 @@
 -------------------------------------------------------------------------------
 
 local gg  = require 'metalua.grammar.generator'
+local annot = require 'metalua.compiler.parser.annot.generator'
 
 return function(M)
     local _M = gg.future(M)
     local _table = gg.future(M, 'table')
-    local _meta  = gg.futue(M, 'meta') -- TODO move to ext?
+    local _meta  = gg.future(M, 'meta') -- TODO move to ext?
     local _annot = gg.future(M, 'annot') -- TODO move to annot
 
     --------------------------------------------------------------------------------
@@ -69,13 +70,13 @@ return function(M)
     --------------------------------------------------------------------------------
     M.func_params_content = gg.list{
         name="function parameters",
-        gg.multisequence{ { "...", builder = "Dots" }, _annot.opt(id, 'te') },
+        gg.multisequence{ { "...", builder = "Dots" }, annot.opt(M, _M.id, 'te') },
         separators  = ",", terminators = {")", "|"} }
 
     -- TODO move to annot
     M.func_val = gg.sequence{
         name = "function body",
-        "(", _M.func_params_content, ")", block, "end",
+        "(", _M.func_params_content, ")", _M.block, "end",
         builder = function(x)
              local params, body = unpack(x)
              local annots, some = { }, false
@@ -148,15 +149,15 @@ return function(M)
         name = "expression",
         primary = gg.multisequence{
             name = "expr primary",
-            { "(", expr, ")",                  builder = "Paren" },
-            { "function", func_val,            builder = unpack },
+            { "(", _M.expr, ")",               builder = "Paren" },
+            { "function", _M.func_val,         builder = unpack },
             { "-{", _meta.splice_content, "}", builder = unpack },
             { "+{", _meta.quote_content, "}",  builder = unpack },
             { "nil",                           builder = "Nil" },
             { "true",                          builder = "True" },
             { "false",                         builder = "False" },
             { "...",                           builder = "Dots" },
-            _table.table,
+            { "{", _table.content, "}",        builder = unpack },
             _M.id_or_literal },
 
         infix = {
@@ -185,20 +186,20 @@ return function(M)
 
         suffix = {
             name = "expr suffix op",
-            { "[", expr, "]", builder = function (tab, idx)
+            { "[", _M.expr, "]", builder = function (tab, idx)
               return {tag="Index", tab, idx[1]} end},
-            { ".", id, builder = function (tab, field)
-              return {tag="Index", tab, mlp_misc.id2string(field[1])} end },
-            { "(", M.func_args_content, ")", builder = function(f, args)
+            { ".", _M.id, builder = function (tab, field)
+              return {tag="Index", tab, _M.id2string(field[1])} end },
+            { "(", _M.func_args_content, ")", builder = function(f, args)
               return {tag="Call", f, unpack(args[1])} end },
-            { "{", mlp_table.table_content, "}", builder = function (f, arg)
+            { "{", _table.content, "}", builder = function (f, arg)
               return {tag="Call", f, arg[1]} end},
-            { ":", id, M.method_args, builder = function (obj, post)
+            { ":", _M.id, _M.method_args, builder = function (obj, post)
               local m_name, args = unpack(post)
-              return {tag="Invoke", obj, mlp_misc.id2string(m_name), unpack(args)} end},
-            { "+{", mlp_meta.quote_content, "}", builder = function (f, arg)
+              return {tag="Invoke", obj, _M.id2string(m_name), unpack(args)} end},
+            { "+{", _meta.quote_content, "}", builder = function (f, arg)
               return {tag="Call", f,  arg[1] } end },
-            default = { name="opt_string_arg", parse = mlp_misc.opt_string, builder = function(f, arg)
+            default = { name="opt_string_arg", parse = _M.opt_string, builder = function(f, arg)
               return {tag="Call", f, arg } end } } }
     return M
 end

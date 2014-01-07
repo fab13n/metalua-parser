@@ -150,15 +150,17 @@ end
 -------------------------------------------------------------------------------
 function M.parse_error(lx, fmt, ...)
    local li = lx:lineinfo_left()
-   local line, column, offset, positions
+   local file, line, column, offset, positions
    if li then
-      line, column, offset = li.line, li.column, li.offset
+      file, line, column, offset = li.source, li.line, li.column, li.offset
       positions = { first = li, last = li }
    else
       line, column, offset = -1, -1, -1
    end
 
    local msg  = string.format("line %i, char %i: "..fmt, line, column, ...)
+   if file and file~='?' then msg = "file "..file..", "..msg end
+
    local src = lx.src
    if offset>0 and src then
       local i, j = offset, offset
@@ -800,10 +802,12 @@ function M.nonempty(primary)
     return p
 end
 
-local function FUTURE_MT :__index (parser_name)
-    local names = {...}
+local FUTURE_MT = { }
+function FUTURE_MT:__tostring() return "<Proxy parser module>" end
+function FUTURE_MT:__newindex(key, value) error "don't write in futures" end
+function FUTURE_MT :__index (parser_name)
     return function(...)
-        local p, m = self.__path, self.__module
+        local p, m = rawget(self, '__path'), self.__module
         if p then for _, name in ipairs(p) do
             m=rawget(m, name)
             if not m then error ("Submodule '"..name.."' undefined") end
@@ -814,14 +818,14 @@ local function FUTURE_MT :__index (parser_name)
     end
 end
 
-local FUTURE_MT = { }
-function FUTURE_MT:__tostring() "<Proxy parser module>" end
-function FUTURE_MT:__newindex(key, value) error "don't write in futures" end
-
 function M.future(module, ...)
     checks('table')
+    local path = ... and {...}
+    if path then for _, x in ipairs(path) do 
+        assert(type(x)=='string', "Bad future arg")
+    end end
     local self = { __module = module,
-                   __path = ... and {...} }
+                   __path   = path }
     return setmetatable(self, FUTURE_MT)
 end
 
