@@ -72,10 +72,10 @@ local xlen_cache = setmetatable({ }, {__mode='k'})
 
 -- Helpers for the `xlen` function
 local xlen_type = {
-    ["nil"] = function () return 3 end;
-    number = function (x) return #tostring(x) end;
+    ["nil"] = function ( ) return 3 end;
+    number  = function (x) return #tostring(x) end;
     boolean = function (x) return x and 4 or 5 end;
-    string = function (x) return #string.format("%q",x) end;
+    string  = function (x) return #string.format("%q",x) end;
 }
 
 function xlen_type.table (adt, cfg, nested)
@@ -282,7 +282,11 @@ end
 function M.print(...) return print(M.tostring(...)) end
 function M.sprintf(fmt, ...)
     local args={...}
-    for i, v in pairs(args) do if type(v)=='table' then args[i]=M.tostring(v) end end
+    for i, v in pairs(args) do
+        local t=type(v)
+        if t=='table' then args[i]=M.tostring(v)
+        elseif t=='nil' then args[i]='nil' end
+    end
     return string.format(fmt, unpack(args))
 end
 

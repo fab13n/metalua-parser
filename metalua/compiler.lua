@@ -146,7 +146,7 @@ end
 function CONV :function_to_bytecode(...) return string.dump(...) end
 
 function CONV :ast_to_src(...)
-	require 'metalua.package' -- ast_to_string isn't written in plain lua
+	require 'metalua.loader' -- ast_to_string isn't written in plain lua
 	return require 'metalua.compiler.ast_to_src' (...)
 end
 
