@@ -26,7 +26,8 @@
 --
 -------------------------------------------------------------------------------
 
-local gg  = require 'metalua.grammar.generator'
+local pp    = require 'metalua.pprint'
+local gg    = require 'metalua.grammar.generator'
 local annot = require 'metalua.compiler.parser.annot.generator'
 
 return function(M)
@@ -104,7 +105,7 @@ return function(M)
                 msg = "An expression was expected, and `"..a[1]..
                     "' can't start an expression"
             else
-                msg = "Unexpected expr token " .. table.tostring (a, 'nohash')
+                msg = "Unexpected expr token " .. pp.tostring (a)
             end
             gg.parse_error (lx, msg)
         end
