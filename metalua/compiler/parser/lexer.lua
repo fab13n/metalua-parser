@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Copyright (c) 2006-2013 Fabien Fleutot and others.
+-- Copyright (c) 2006-2014 Fabien Fleutot and others.
 --
 -- All rights reserved.
 --
@@ -18,31 +18,26 @@
 --------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------
--- (Meta)lua-specific lexer, derived from the generic lexer.
-----------------------------------------------------------------------
---
--- Copyright (c) 2006-2012, Fabien Fleutot <metalua@gmail.com>.
---
--- This software is released under the MIT Licence, see licence.txt
--- for details.
---
+-- Generate a new lua-specific lexer, derived from the generic lexer.
 ----------------------------------------------------------------------
 
 local generic_lexer = require 'metalua.grammar.lexer'
 
-local lexer = generic_lexer.lexer :clone()
+return function()
+    local lexer = generic_lexer.lexer :clone()
 
-local keywords = {
-    "and", "break", "do", "else", "elseif",
-    "end", "false", "for", "function",
-    "goto", -- Lua5.2
-    "if",
-    "in", "local", "nil", "not", "or", "repeat",
-    "return", "then", "true", "until", "while",
-    "...", "..", "==", ">=", "<=", "~=",
-    "::", -- Lua5,2
-    "+{", "-{" } -- Metalua
+    local keywords = {
+        "and", "break", "do", "else", "elseif",
+        "end", "false", "for", "function",
+        "goto", -- Lua5.2
+        "if",
+        "in", "local", "nil", "not", "or", "repeat",
+        "return", "then", "true", "until", "while",
+        "...", "..", "==", ">=", "<=", "~=",
+        "::", -- Lua5,2
+        "+{", "-{" } -- Metalua
 
-for _, w in ipairs(keywords) do lexer :add (w) end
+    for _, w in ipairs(keywords) do lexer :add (w) end
 
-return lexer
+    return lexer
+end

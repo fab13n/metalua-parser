@@ -21,12 +21,20 @@
 
 local MT = { __type='metalua.compiler.parser' }
 
+local MODULE_REL_NAMES = { "annot.grammar", "expr", "meta", "misc",
+                           "stat", "table", "ext" }
+
 local function new()
-    local M = { lexer = require "metalua.compiler.parser.lexer" }
-    local mod_names = { "annot.grammar", "expr", "meta", "misc", "stat", "table", "ext" }
-    for _, mod_name in ipairs(mod_names) do
-        local extender = require ("metalua.compiler.parser."..mod_name)
-        if type (extender) == 'function' then extender(M) end
+    local M = {
+        lexer = require "metalua.compiler.parser.lexer" ();
+        extensions = { } }
+    for _, rel_name in ipairs(MODULE_REL_NAMES) do
+        local abs_name = "metalua.compiler.parser."..rel_name
+        local extender = require (abs_name)
+        if not M.extensions[abs_name] then
+            if type (extender) == 'function' then extender(M) end
+            M.extensions[abs_name] = extender
+        end
     end
     return setmetatable(M, MT)
 end
